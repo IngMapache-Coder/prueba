@@ -1,26 +1,15 @@
+import { BaseCrudService } from './base/baseCrudService.js';
 import { User } from '../models/index.js';
 
-export const createUser = async (userData) => {
-  return await User.create(userData);
-};
+export class UserService extends BaseCrudService {
+  constructor(model, validator) {
+    super(model, validator);
+  }
 
-export const getAllUsers = async () => {
-  return await User.findAll();
-};
-
-export const getUserById = async (id) => {
-  return await User.findByPk(id);
-};
-
-export const updateUser = async (id, userData) => {
-  const user = await User.findByPk(id);
-  if (!user) return null;
-  return await user.update(userData);
-};
-
-export const deleteUser = async (id) => {
-  const user = await User.findByPk(id);
-  if (!user) return null;
-  await user.destroy();
-  return user;
-};
+  async create(data) {
+    if (!data.username || !data.email || !data.password) {
+      throw new Error('Username, email y password son requeridos');
+    }
+    return await super.create(data);
+  }
+}

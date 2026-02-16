@@ -1,5 +1,5 @@
 import express from 'express';
-import * as stopPointController from '../controllers/stopPointController.js';
+import stopPointController from '../controllers/stopPointController.js';
 
 const router = express.Router();
 

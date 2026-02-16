@@ -31,6 +31,16 @@ const Path = sequelize.define("Path", {
     type: DataTypes.JSON,
     allowNull: false,
   },
+  mapId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'Maps',
+      key: 'id'
+    }
+  }
+}, {
+  timestamps: true
 });
 
 export default Path;

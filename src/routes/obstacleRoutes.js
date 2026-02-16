@@ -1,5 +1,5 @@
 import express from 'express';
-import * as obstacleController from '../controllers/obstacleController.js';
+import obstacleController from '../controllers/obstacleController.js';
 
 const router = express.Router();
 

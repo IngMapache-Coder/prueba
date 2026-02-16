@@ -27,7 +27,7 @@ app.get('/', (req, res) => {
       obstacles: '/api/obstacles',
       stopPoints: '/api/stoppoints',
       routes: '/api/routes',
-      path: '/api/path'
+      path: '/api/paths'
     }
   });
 });

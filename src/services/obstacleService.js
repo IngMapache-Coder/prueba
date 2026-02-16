@@ -1,67 +1,46 @@
-import { Obstacle, Map } from "../models/index.js";
+import { BaseCrudService } from './base/baseCrudService.js';
+import { Obstacle, Map } from '../models/index.js';
 
-export const createObstacle = async (obstacleData) => {
-  const map = await Map.findByPk(obstacleData.mapId);
-  if (!map) {
-    throw new Error("Mapa no encontrado");
+export class ObstacleService extends BaseCrudService {
+  constructor(model, mapModel, validator) {
+    super(model, validator);
+    this.mapModel = mapModel;
   }
 
-  if (
-    obstacleData.posX < 0 ||
-    obstacleData.posX >= map.width ||
-    obstacleData.posY < 0 ||
-    obstacleData.posY >= map.height ||
-    !Number.isInteger(obstacleData.posX) ||
-    !Number.isInteger(obstacleData.posY)
-  ) {
-    throw new Error(
-      `Posición fuera del mapa o no entera. El mapa es de ${map.width}x${map.height}`,
-    );
+  async create(data) {
+    const map = await this.mapModel.findByPk(data.mapId);
+    if (!map) {
+      throw new Error('Mapa no encontrado');
+    }
+
+    await this.validator.validateCoordinates(data.posX, data.posY, map);
+    
+    return await super.create(data);
   }
 
-  return await Obstacle.create(obstacleData);
-};
-
-export const getAllObstacles = async () => {
-  return await Obstacle.findAll({ include: Map });
-};
-
-export const getObstacleById = async (id) => {
-  return await Obstacle.findByPk(id, { include: Map });
-};
-
-export const updateObstacle = async (id, obstacleData) => {
-  const obstacle = await Obstacle.findByPk(id);
-  if (!obstacle) return null;
-
-  const mapId = obstacleData.mapId || obstacle.mapId;
-  const map = await Map.findByPk(mapId);
-  if (!map) {
-    throw new Error("Mapa no encontrado");
+  async getAll() {
+    return await this.model.findAll({ include: this.mapModel });
   }
 
-  const newPosX =
-    obstacleData.posX !== undefined ? obstacleData.posX : obstacle.posX;
-  const newPosY =
-    obstacleData.posY !== undefined ? obstacleData.posY : obstacle.posY;
-
-  if (
-    newPosX < 0 ||
-    newPosX >= map.width ||
-    newPosY < 0 ||
-    newPosY >= map.height
-  ) {
-    throw new Error(
-      `Posición fuera del mapa. El mapa es de ${map.width}x${map.height}`,
-    );
+  async getById(id) {
+    return await this.model.findByPk(id, { include: this.mapModel });
   }
 
-  return await obstacle.update(obstacleData);
-};
+  async update(id, data) {
+    const obstacle = await this.model.findByPk(id);
+    if (!obstacle) return null;
 
-export const deleteObstacle = async (id) => {
-  const obstacle = await Obstacle.findByPk(id);
-  if (!obstacle) return null;
-  await obstacle.destroy();
-  return obstacle;
-};
+    const mapId = data.mapId || obstacle.mapId;
+    const map = await this.mapModel.findByPk(mapId);
+    if (!map) {
+      throw new Error('Mapa no encontrado');
+    }
+
+    const newPosX = data.posX !== undefined ? data.posX : obstacle.posX;
+    const newPosY = data.posY !== undefined ? data.posY : obstacle.posY;
+
+    await this.validator.validateCoordinates(newPosX, newPosY, map);
+
+    return await obstacle.update(data);
+  }
+}

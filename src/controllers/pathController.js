@@ -1,42 +1,53 @@
-import * as pathService from '../services/pathService.js';
+import { BaseController } from './base/baseController.js';
+import { container } from '../config/dependencyInjection.js';
+import { ValidationError } from '../utils/errors/domainErrors.js';
 
-export const validatePoints = async (req, res) => {
+class PathController extends BaseController {
+  constructor() {
+    super(null);
+    this.pathFinderService = container.get('pathFinderService');
+  }
+
+  validatePoints = (req, res) => this.handleRequest(req, res, async () => {
     const { mapId, startPoint, destinationPoint } = req.body;
-    try {
-        await pathService.validatePoints(mapId, startPoint, destinationPoint);
-        res.json({ message: 'Los puntos y el mapa son válidos y existen en la base de datos.' });
-    } catch (error) {
-        res.status(400).json({ error: error.message });
+    
+    if (!mapId || !startPoint || !destinationPoint) {
+      throw new ValidationError('Se requieren mapId, startPoint y destinationPoint');
     }
-};
 
-export const validateMapConfiguration = async (req, res) => {
+    await this.pathFinderService.validatePoints(mapId, startPoint, destinationPoint);
+    return { message: 'Los puntos y el mapa son válidos y existen en la base de datos.' };
+  });
+
+  validateMapConfiguration = (req, res) => this.handleRequest(req, res, async () => {
     const { mapId } = req.body;
-    try {
-        await pathService.validateMapConfiguration(mapId);
-        res.json({ message: 'La configuración del mapa es válida y contiene ruta, obstáculos y puntos de parada.' });
-    } catch (error) {
-        res.status(400).json({ error: error.message });
+    
+    if (!mapId) {
+      throw new ValidationError('Se requiere mapId');
     }
-}
 
-export const findPath = async (req, res) => {
-    try {
-        const { mapId, userPreferences } = req.body;
-        const { algorithm = "A*", allowDiagonals = false } = userPreferences ?? {};
-        const result = await pathService.findPath(mapId, algorithm, allowDiagonals);
-        res.json({ result });
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-}
+    await this.pathFinderService.validateMapConfiguration(mapId);
+    return { message: 'La configuración del mapa es válida y contiene ruta, obstáculos y puntos de parada.' };
+  });
 
-export const traversePath = async (req, res) => {
+  findPath = (req, res) => this.handleRequest(req, res, async () => {
+    const { mapId, userPreferences } = req.body;
+    const { algorithm = 'A*', allowDiagonals = false } = userPreferences ?? {};
+    
+    const result = await this.pathFinderService.findPath(mapId, algorithm, allowDiagonals);
+    return { result };
+  });
+
+  traversePath = (req, res) => this.handleRequest(req, res, async () => {
     const { pathId, mapId } = req.body;
-    try {
-        const result = await pathService.traversePath(pathId, mapId);
-        res.json({ result });
-    } catch (error) {
-        res.status(400).json({ error: error.message });
+    
+    if (!pathId || !mapId) {
+      throw new ValidationError('Se requieren pathId y mapId');
     }
-};
+
+    const result = await this.pathFinderService.traversePath(pathId, mapId);
+    return { result };
+  });
+}
+
+export default new PathController();

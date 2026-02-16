@@ -1,69 +1,46 @@
-import { StopPoint, Map } from "../models/index.js";
+import { BaseCrudService } from './base/baseCrudService.js';
+import { StopPoint, Map } from '../models/index.js';
 
-export const createStopPoint = async (stopPointData) => {
-  const map = await Map.findByPk(stopPointData.mapId);
-  if (!map) {
-    throw new Error("Mapa no encontrado");
+export class StopPointService extends BaseCrudService {
+  constructor(model, mapModel, validator) {
+    super(model, validator);
+    this.mapModel = mapModel;
   }
 
-  if (
-    stopPointData.posX < 0 ||
-    stopPointData.posX >= map.width ||
-    stopPointData.posY < 0 ||
-    stopPointData.posY >= map.height ||
-    !Number.isInteger(stopPointData.posX) ||
-    !Number.isInteger(stopPointData.posY)
-  ) {
-    throw new Error(
-      `Posición fuera del mapa. El mapa es de ${map.width}x${map.height}`,
-    );
+  async create(data) {
+    const map = await this.mapModel.findByPk(data.mapId);
+    if (!map) {
+      throw new Error('Mapa no encontrado');
+    }
+
+    await this.validator.validateCoordinates(data.posX, data.posY, map);
+    
+    return await super.create(data);
   }
 
-  return await StopPoint.create(stopPointData);
-};
-
-export const getAllStopPoints = async () => {
-  return await StopPoint.findAll({ include: Map });
-};
-
-export const getStopPointById = async (id) => {
-  return await StopPoint.findByPk(id, { include: Map });
-};
-
-export const updateStopPoint = async (id, stopPointData) => {
-  const stopPoint = await StopPoint.findByPk(id);
-  if (!stopPoint) return null;
-
-  const mapId = stopPointData.mapId || stopPoint.mapId;
-  const map = await Map.findByPk(mapId);
-  if (!map) {
-    throw new Error("Mapa no encontrado");
+  async getAll() {
+    return await this.model.findAll({ include: this.mapModel });
   }
 
-  const newPosX =
-    stopPointData.posX !== undefined ? stopPointData.posX : stopPoint.posX;
-  const newPosY =
-    stopPointData.posY !== undefined ? stopPointData.posY : stopPoint.posY;
-
-  if (
-    newPosX < 0 ||
-    newPosX >= map.width ||
-    newPosY < 0 ||
-    newPosY >= map.height ||
-    !Number.isInteger(newPosX) ||
-    !Number.isInteger(newPosY)
-  ) {
-    throw new Error(
-      `Posición fuera del mapa. El mapa es de ${map.width}x${map.height}`,
-    );
+  async getById(id) {
+    return await this.model.findByPk(id, { include: this.mapModel });
   }
 
-  return await stopPoint.update(stopPointData);
-};
+  async update(id, data) {
+    const stopPoint = await this.model.findByPk(id);
+    if (!stopPoint) return null;
 
-export const deleteStopPoint = async (id) => {
-  const stopPoint = await StopPoint.findByPk(id);
-  if (!stopPoint) return null;
-  await stopPoint.destroy();
-  return stopPoint;
-};
+    const mapId = data.mapId || stopPoint.mapId;
+    const map = await this.mapModel.findByPk(mapId);
+    if (!map) {
+      throw new Error('Mapa no encontrado');
+    }
+
+    const newPosX = data.posX !== undefined ? data.posX : stopPoint.posX;
+    const newPosY = data.posY !== undefined ? data.posY : stopPoint.posY;
+
+    await this.validator.validateCoordinates(newPosX, newPosY, map);
+
+    return await stopPoint.update(data);
+  }
+}

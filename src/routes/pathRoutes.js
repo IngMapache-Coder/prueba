@@ -1,5 +1,5 @@
 import express from 'express';
-import * as pathController from '../controllers/pathController.js';
+import pathController from '../controllers/pathController.js';
 
 const router = express.Router();
 
