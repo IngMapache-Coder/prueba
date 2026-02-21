@@ -2,6 +2,11 @@ import { BasePathAlgorithm } from './baseAlgorithm.js';
 import { getNeighbors, reconstructPath } from '../pathUtils.js';
 
 export class BFSAlgorithm extends BasePathAlgorithm {
+
+  getHeuristic() {
+    return null;
+  }
+  
   findPath(grid, start, end, allowDiagonals = false, stopPoints = []) {
     if (!stopPoints || stopPoints.length === 0) {
       return this.findPathSimple(grid, start, end, allowDiagonals);

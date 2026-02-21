@@ -1,9 +1,9 @@
 import { BaseController } from './base/baseController.js';
 import { container } from '../config/dependencyInjection.js';
 
-class RouteController extends BaseController {
-  constructor() {
-    super(container.get('routeService'));
+export class RouteController extends BaseController {
+  constructor(routeService = container.get('routeService')) {
+    super(routeService);
   }
 }
 

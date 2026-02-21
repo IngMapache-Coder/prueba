@@ -1,9 +1,9 @@
 import { BaseController } from './base/baseController.js';
 import { container } from '../config/dependencyInjection.js';
 
-class ObstacleController extends BaseController {
-  constructor() {
-    super(container.get('obstacleService'));
+export class ObstacleController extends BaseController {
+  constructor(obstacleService = container.get('obstacleService')) {
+    super(obstacleService);
   }
 }
 

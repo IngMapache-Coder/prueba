@@ -5,14 +5,14 @@ export class BaseController {
     this.service = service;
   }
 
-  async handleRequest(req, res, operation, successStatus = 200) {
-    try {
-      const result = await operation(req);
-      res.status(successStatus).json(result);
-    } catch (error) {
-      this.handleError(error, res);
-    }
+  async handleRequest(req, res, next, operation, successStatus = 200) {
+  try {
+    const result = await operation(req);
+    res.status(successStatus).json(result);
+  } catch (error) {
+    next(error);
   }
+}
 
   handleError(error, res) {
     console.error(`[${new Date().toISOString()}] Error:`, error);
@@ -56,23 +56,23 @@ export class BaseController {
     });
   }
 
-  create = (req, res) => this.handleRequest(req, res, async () => {
+  create = (req, res, next) => this.handleRequest(req, res, next, async () => {
     return await this.service.create(req.body);
   }, 201);
 
-  getAll = (req, res) => this.handleRequest(req, res, async () => {
+  getAll = (req, res, next) => this.handleRequest(req, res, next, async () => {
     return await this.service.getAll();
   });
 
-  getById = (req, res) => this.handleRequest(req, res, async () => {
+  getById = (req, res, next) => this.handleRequest(req, res, next, async () => {
     return await this.service.getById(req.params.id);
   });
 
-  update = (req, res) => this.handleRequest(req, res, async () => {
+  update = (req, res, next) => this.handleRequest(req, res, next, async () => {
     return await this.service.update(req.params.id, req.body);
   });
 
-  remove = (req, res) => this.handleRequest(req, res, async () => {
+  remove = (req, res, next) => this.handleRequest(req, res, next, async () => {
     await this.service.delete(req.params.id);
     return { message: 'Recurso eliminado correctamente' };
   });

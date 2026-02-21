@@ -1,5 +1,6 @@
 import { BaseCrudService } from './base/baseCrudService.js';
 import { StopPoint, Map } from '../models/index.js';
+import { ResourceNotFoundError } from '../utils/errors/domainErrors.js';
 
 export class StopPointService extends BaseCrudService {
   constructor(model, mapModel, validator) {
@@ -23,12 +24,20 @@ export class StopPointService extends BaseCrudService {
   }
 
   async getById(id) {
-    return await this.model.findByPk(id, { include: this.mapModel });
+    const stopPoint = await this.model.findByPk(id, { include: this.mapModel });
+    
+    if (!stopPoint) {
+      throw new ResourceNotFoundError('Punto de parada', id);
+    }
+    
+    return stopPoint;
   }
 
   async update(id, data) {
     const stopPoint = await this.model.findByPk(id);
-    if (!stopPoint) return null;
+    if (!stopPoint) {
+      throw new ResourceNotFoundError('Punto de parada', id);
+    }
 
     const mapId = data.mapId || stopPoint.mapId;
     const map = await this.mapModel.findByPk(mapId);

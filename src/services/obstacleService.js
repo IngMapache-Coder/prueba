@@ -1,5 +1,6 @@
 import { BaseCrudService } from './base/baseCrudService.js';
 import { Obstacle, Map } from '../models/index.js';
+import { ResourceNotFoundError } from '../utils/errors/domainErrors.js';
 
 export class ObstacleService extends BaseCrudService {
   constructor(model, mapModel, validator) {
@@ -23,12 +24,20 @@ export class ObstacleService extends BaseCrudService {
   }
 
   async getById(id) {
-    return await this.model.findByPk(id, { include: this.mapModel });
+    const obstacle = await this.model.findByPk(id, { include: this.mapModel });
+    
+    if (!obstacle) {
+      throw new ResourceNotFoundError('Obstáculo', id);
+    }
+    
+    return obstacle;
   }
 
   async update(id, data) {
     const obstacle = await this.model.findByPk(id);
-    if (!obstacle) return null;
+    if (!obstacle) {
+      throw new ResourceNotFoundError('Obstáculo', id);
+    }
 
     const mapId = data.mapId || obstacle.mapId;
     const map = await this.mapModel.findByPk(mapId);
